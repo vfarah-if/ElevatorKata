@@ -2,6 +2,7 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
 using Xunit;
 
 namespace ElevatorKata.Domain.UnitTests
@@ -9,9 +10,11 @@ namespace ElevatorKata.Domain.UnitTests
     public class ElevatorShould
     {
         private Elevator elevator;
+        private readonly Mock<IClock> mockClock;
 
         public ElevatorShould()
         {
+            mockClock = new Mock<IClock>();
             elevator = new Elevator(new Dictionary<int, string>
             {
                 { -1, "Basement" },
@@ -19,7 +22,7 @@ namespace ElevatorKata.Domain.UnitTests
                 {  1, "First" },
                 {  2, "Second" },
                 {  3, "Penthouse Suite" },
-            });
+            }, mockClock.Object);
         }
 
         [Fact]
@@ -74,6 +77,7 @@ namespace ElevatorKata.Domain.UnitTests
             changedFloors.Should().Contain(1);
             changedFloors.Should().Contain(2);
             changedFloors.Should().Contain(3);
+            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Exactly(3));
         }
 
         [Fact]
@@ -103,6 +107,7 @@ namespace ElevatorKata.Domain.UnitTests
             expectedFloor.Should().NotBeNull();
             expectedFloor.PreviousFloor.Should().Be(GroundFloor);
             expectedFloor.Description.Should().Be("Basement");
+            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Once);
         }
 
         [Fact]
@@ -128,6 +133,7 @@ namespace ElevatorKata.Domain.UnitTests
             elevator.GoTo(groundFloor);
 
             changedFloors.Should().BeEmpty();
+            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Never);
         }
 
         [Theory]
@@ -145,7 +151,17 @@ namespace ElevatorKata.Domain.UnitTests
         {
             var expectedMessage = $"Value cannot be null.{Environment.NewLine}Parameter name: supportedFloors";
 
-            Action act = () => new Elevator(null);
+            Action act = () => new Elevator(null, mockClock.Object);
+
+            act.Should().Throw<ArgumentNullException>().WithMessage(expectedMessage);
+        }
+
+        [Fact]
+        public void ThrowArgumentNullExceptionWhenNullClockIsAssigned()
+        {
+            var expectedMessage = $"Value cannot be null.{Environment.NewLine}Parameter name: clock";
+
+            Action act = () => new Elevator(new Dictionary<int, string>{{0, "ground"}}, null);
 
             act.Should().Throw<ArgumentNullException>().WithMessage(expectedMessage);
         }
@@ -156,7 +172,7 @@ namespace ElevatorKata.Domain.UnitTests
             Action act = () =>
             {
                 var emptyFloors = new Dictionary<int, string>();
-                new Elevator(emptyFloors);
+                new Elevator(emptyFloors, mockClock.Object);
             };
 
             act.Should().Throw<ArgumentException>();
@@ -169,7 +185,7 @@ namespace ElevatorKata.Domain.UnitTests
             const int NonExistentFloor = 1;
             var expectedDefaultFloor = floors.First().Key;
 
-            elevator = new Elevator(floors, NonExistentFloor);
+            elevator = new Elevator(floors, mockClock.Object, NonExistentFloor);
 
             elevator.CurrentFloor.Should().Be(expectedDefaultFloor);
         }

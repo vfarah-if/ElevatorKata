@@ -7,7 +7,9 @@ namespace ElevatorKata.Domain
 {
     public class Elevator
     {
-        public Elevator(IDictionary<int, string> supportedFloors, int currentFloor = 0)
+        private readonly IClock clock;
+
+        public Elevator(IDictionary<int, string> supportedFloors, IClock clock, int currentFloor = 0)
         {
             if (supportedFloors == null)
             {
@@ -18,12 +20,15 @@ namespace ElevatorKata.Domain
             {
                 throw new ArgumentException(Errors.FloorsEmpty, nameof(supportedFloors));
             }
-                
+
+            this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
+
             Floors = supportedFloors.ToImmutableSortedDictionary();
             CurrentFloor = Floors.ContainsKey(currentFloor) ? currentFloor : Floors.First().Key;
         }
-
+        
         public int CurrentFloor { get; private set; }
+        
         public IImmutableDictionary<int, string> Floors { get; }
 
         public EventHandler<FloorChangedEventArgument> FloorChanged;
@@ -67,7 +72,8 @@ namespace ElevatorKata.Domain
         {
             for (var i = CurrentFloor + 1; i <= targetFloor; i++)
             {
-                if (!Floors.ContainsKey(i)) continue;
+                if (!Floors.ContainsKey(i)) continue;                
+
                 var previousFloor = CurrentFloor;
                 CurrentFloor = i;
                 OnFloorChanged(FloorChangedEventArgument.Create(previousFloor, CurrentFloor, Floors[CurrentFloor]));
@@ -76,6 +82,7 @@ namespace ElevatorKata.Domain
 
         protected virtual void OnFloorChanged(FloorChangedEventArgument currentFloorArgument)
         {
+            this.clock.PauseFor(TimeSpan.FromSeconds(5));
             var handler = FloorChanged;
             handler?.Invoke(this, currentFloorArgument);
         }
