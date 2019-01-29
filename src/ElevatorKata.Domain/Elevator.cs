@@ -7,7 +7,7 @@ namespace ElevatorKata.Domain
 {
     public class Elevator
     {
-        public Elevator(Dictionary<int, string> supportedFloors, int currentFloor = 0)
+        public Elevator(IDictionary<int, string> supportedFloors, int currentFloor = 0)
         {
             if (supportedFloors == null)
             {
@@ -26,29 +26,58 @@ namespace ElevatorKata.Domain
         public int CurrentFloor { get; private set; }
         public IImmutableDictionary<int, string> Floors { get; }
 
-        public Direction GoTo(int floor)
-        {
-            var result = Direction.None;
-            ValidateFloorExists(floor);
-            if (CurrentFloor < floor)
-            {
-                result = Direction.Up;
-            }
+        public EventHandler<FloorChangedEventArgument> FloorChanged;
 
-            if (CurrentFloor > floor)
-            {
-                result = Direction.Down;
-            }
-            CurrentFloor = floor;
-            return result;
-        }
-
-        private void ValidateFloorExists(int floor)
-        {
-            if (!Floors.ContainsKey(floor))
+        public Direction GoTo(int targetFloor)
+        {            
+            if (!Floors.ContainsKey(targetFloor))
             {
                 throw new ArgumentOutOfRangeException();
             }
+
+            var result = Direction.None;
+
+            if (CurrentFloor < targetFloor)
+            {
+                result = Direction.Up;
+                MoveElevatorUpwards(targetFloor);
+            }
+
+            if (CurrentFloor > targetFloor)
+            {
+                result = Direction.Down;
+                MoveElevatorDownwards(targetFloor);
+            }
+
+            return result;
+        }
+
+        private void MoveElevatorDownwards(int targetFloor)
+        {
+            for (var i = CurrentFloor - 1; i >= targetFloor; i--)
+            {
+                if (!Floors.ContainsKey(i)) continue;
+                var previousFloor = CurrentFloor;
+                CurrentFloor = i;
+                OnFloorChanged(FloorChangedEventArgument.Create(previousFloor, CurrentFloor, Floors[CurrentFloor]));
+            }
+        }
+
+        private void MoveElevatorUpwards(int targetFloor)
+        {
+            for (var i = CurrentFloor + 1; i <= targetFloor; i++)
+            {
+                if (!Floors.ContainsKey(i)) continue;
+                var previousFloor = CurrentFloor;
+                CurrentFloor = i;
+                OnFloorChanged(FloorChangedEventArgument.Create(previousFloor, CurrentFloor, Floors[CurrentFloor]));
+            }
+        }
+
+        protected virtual void OnFloorChanged(FloorChangedEventArgument currentFloorArgument)
+        {
+            var handler = FloorChanged;
+            handler?.Invoke(this, currentFloorArgument);
         }
     }
 }

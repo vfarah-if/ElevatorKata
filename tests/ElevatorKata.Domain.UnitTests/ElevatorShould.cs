@@ -15,10 +15,10 @@ namespace ElevatorKata.Domain.UnitTests
             elevator = new Elevator(new Dictionary<int, string>
             {
                 { -1, "Basement" },
-                { 0, "Ground" },
-                { 1, "First" },
-                { 2, "Second" },
-                { 3, "Penthouse Suite" },
+                {  0, "Ground" },
+                {  1, "First" },
+                {  2, "Second" },
+                {  3, "Penthouse Suite" },
             });
         }
 
@@ -60,6 +60,23 @@ namespace ElevatorKata.Domain.UnitTests
         }
 
         [Fact]
+        public void GoToThePenthouseSuiteAndObserveEachFloorAsItChanges()
+        {
+            const int penthouseSuite = 3;
+            var changedFloors = new List<int>();
+            elevator.FloorChanged += (sender, args) =>
+            {
+                changedFloors.Add(args.CurrentFloor);
+            };
+
+            elevator.GoTo(penthouseSuite);
+
+            changedFloors.Should().Contain(1);
+            changedFloors.Should().Contain(2);
+            changedFloors.Should().Contain(3);
+        }
+
+        [Fact]
         public void GoToTheBasementInADownDirection()
         {
             const int basement = -1;
@@ -70,6 +87,25 @@ namespace ElevatorKata.Domain.UnitTests
         }
 
         [Fact]
+        public void GoToTheBasementAndObserveEachFloorAsItChanges()
+        {
+            const int Basement = -1;
+            const int GroundFloor = 0;
+            var changedFloors = new List<FloorChangedEventArgument>();
+            elevator.FloorChanged += (sender, args) =>
+            {
+                changedFloors.Add(args);
+            };
+
+            elevator.GoTo(Basement);
+
+            var expectedFloor = changedFloors.Single(x => x.CurrentFloor == -1);
+            expectedFloor.Should().NotBeNull();
+            expectedFloor.PreviousFloor.Should().Be(GroundFloor);
+            expectedFloor.Description.Should().Be("Basement");
+        }
+
+        [Fact]
         public void StayOnTheGroundFloorWhenAlreadyOnTheGroundFloor()
         {
             const int groundFloor = 0;
@@ -77,6 +113,21 @@ namespace ElevatorKata.Domain.UnitTests
             var actualDirection = elevator.GoTo(groundFloor);
 
             actualDirection.Should().Be(Direction.None);
+        }
+
+        [Fact]
+        public void GoToTheSameFloorWithoutEmittingAnyChangedFloor()
+        {
+            const int groundFloor = 0;
+            var changedFloors = new List<int>();
+            elevator.FloorChanged += (sender, args) =>
+            {
+                changedFloors.Add(args.CurrentFloor);
+            };
+
+            elevator.GoTo(groundFloor);
+
+            changedFloors.Should().BeEmpty();
         }
 
         [Theory]
@@ -95,7 +146,7 @@ namespace ElevatorKata.Domain.UnitTests
             var expectedMessage = $"Value cannot be null.{Environment.NewLine}Parameter name: supportedFloors";
 
             Action act = () => new Elevator(null);
-            
+
             act.Should().Throw<ArgumentNullException>().WithMessage(expectedMessage);
         }
 
@@ -119,7 +170,7 @@ namespace ElevatorKata.Domain.UnitTests
             var expectedDefaultFloor = floors.First().Key;
 
             elevator = new Elevator(floors, NonExistentFloor);
-            
+
             elevator.CurrentFloor.Should().Be(expectedDefaultFloor);
         }
     }
