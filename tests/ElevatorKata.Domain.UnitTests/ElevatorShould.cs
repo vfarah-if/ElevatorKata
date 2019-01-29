@@ -9,6 +9,10 @@ namespace ElevatorKata.Domain.UnitTests
 {
     public class ElevatorShould
     {
+        private const int PenthouseSuite = 3;
+        private const int GroundFloor = 0;
+        private const int Basement = -1;
+
         private Elevator elevator;
         private readonly Mock<IClock> mockClock;
 
@@ -29,6 +33,7 @@ namespace ElevatorKata.Domain.UnitTests
         public void DefaultTheElevatorOnTheGroundFloor()
         {
             elevator.CurrentFloor.Should().Be(0);
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
         }
 
         [Fact]
@@ -44,20 +49,16 @@ namespace ElevatorKata.Domain.UnitTests
 
         [Fact]
         public void GoToThePenthouseSuite()
-        {
-            const int penthouseSuite = 3;
+        {            
+            elevator.GoTo(PenthouseSuite);
 
-            elevator.GoTo(penthouseSuite);
-
-            elevator.CurrentFloor.Should().Be(penthouseSuite);
+            elevator.CurrentFloor.Should().Be(PenthouseSuite);
         }
 
         [Fact]
         public void GoToThePenthouseSuiteInAnUpDirection()
         {
-            const int penthouseSuite = 3;
-
-            var actualDirection = elevator.GoTo(penthouseSuite);
+            var actualDirection = elevator.GoTo(PenthouseSuite);
 
             actualDirection.Should().Be(Direction.Up);
         }
@@ -65,42 +66,42 @@ namespace ElevatorKata.Domain.UnitTests
         [Fact]
         public void GoToThePenthouseSuiteAndObserveEachFloorAsItChanges()
         {
-            const int penthouseSuite = 3;
             var changedFloors = new List<int>();
             elevator.FloorChanged += (sender, args) =>
             {
                 changedFloors.Add(args.CurrentFloor);
+                elevator.States.Should().Be(ElevatorState.MovingWithDoorClosed);
             };
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
 
-            elevator.GoTo(penthouseSuite);
+            elevator.GoTo(PenthouseSuite);
 
             changedFloors.Should().Contain(1);
             changedFloors.Should().Contain(2);
             changedFloors.Should().Contain(3);
             mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Exactly(3));
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
         }
 
         [Fact]
         public void GoToTheBasementInADownDirection()
         {
-            const int basement = -1;
-
-            var actualDirection = elevator.GoTo(basement);
+            var actualDirection = elevator.GoTo(Basement);
 
             actualDirection.Should().Be(Direction.Down);
         }
 
         [Fact]
         public void GoToTheBasementAndObserveEachFloorAsItChanges()
-        {
-            const int Basement = -1;
-            const int GroundFloor = 0;
+        {            
             var changedFloors = new List<FloorChangedEventArgument>();
             elevator.FloorChanged += (sender, args) =>
             {
                 changedFloors.Add(args);
+                elevator.States.Should().Be(ElevatorState.MovingWithDoorClosed);
             };
 
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
             elevator.GoTo(Basement);
 
             var expectedFloor = changedFloors.Single(x => x.CurrentFloor == -1);
@@ -108,14 +109,13 @@ namespace ElevatorKata.Domain.UnitTests
             expectedFloor.PreviousFloor.Should().Be(GroundFloor);
             expectedFloor.Description.Should().Be("Basement");
             mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Once);
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
         }
 
         [Fact]
         public void StayOnTheGroundFloorWhenAlreadyOnTheGroundFloor()
         {
-            const int groundFloor = 0;
-
-            var actualDirection = elevator.GoTo(groundFloor);
+            var actualDirection = elevator.GoTo(GroundFloor);
 
             actualDirection.Should().Be(Direction.None);
         }
@@ -123,17 +123,19 @@ namespace ElevatorKata.Domain.UnitTests
         [Fact]
         public void GoToTheSameFloorWithoutEmittingAnyChangedFloor()
         {
-            const int groundFloor = 0;
             var changedFloors = new List<int>();
             elevator.FloorChanged += (sender, args) =>
             {
                 changedFloors.Add(args.CurrentFloor);
+                elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
             };
 
-            elevator.GoTo(groundFloor);
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
+            elevator.GoTo(GroundFloor);
 
             changedFloors.Should().BeEmpty();
             mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Never);
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
         }
 
         [Theory]
@@ -188,6 +190,37 @@ namespace ElevatorKata.Domain.UnitTests
             elevator = new Elevator(floors, mockClock.Object, NonExistentFloor);
 
             elevator.CurrentFloor.Should().Be(expectedDefaultFloor);
+        }
+
+        [Fact]
+        public void OpenTheDoorAndPlaceTheLiftInAStoppedWithOpenDoorState()
+        {
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
+
+            elevator.OpenTheDoor();
+
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
+            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(3)), Times.Once);
+        }
+
+        [Fact]
+        public void NotBeAbleToOpenTheDoorWhenTheLiftIsMoving()
+        {
+            elevator.FloorChanged += (sender, argument) =>
+            {
+                elevator.States.Should().Be(ElevatorState.MovingWithDoorClosed);
+                elevator.OpenTheDoor().Should().BeFalse();
+                elevator.States.Should().NotHaveFlag(ElevatorState.DoorOpen);
+                elevator.States.Should().HaveFlag(ElevatorState.DoorClosed);
+                elevator.States.Should().HaveFlag(ElevatorState.Moving);
+
+            };
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
+
+            elevator.GoTo(PenthouseSuite);
+            
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
+            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(3)), Times.Once);
         }
     }
 }

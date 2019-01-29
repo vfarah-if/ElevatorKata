@@ -25,36 +25,56 @@ namespace ElevatorKata.Domain
 
             Floors = supportedFloors.ToImmutableSortedDictionary();
             CurrentFloor = Floors.ContainsKey(currentFloor) ? currentFloor : Floors.First().Key;
+            States = ElevatorState.StoppedWithDoorClosed;
         }
-        
+
         public int CurrentFloor { get; private set; }
-        
+        public ElevatorState States { get; private set; }
+
         public IImmutableDictionary<int, string> Floors { get; }
 
         public EventHandler<FloorChangedEventArgument> FloorChanged;
 
         public Direction GoTo(int targetFloor)
-        {            
+        {
             if (!Floors.ContainsKey(targetFloor))
             {
                 throw new ArgumentOutOfRangeException();
             }
 
             var result = Direction.None;
-
-            if (CurrentFloor < targetFloor)
+            try
             {
-                result = Direction.Up;
-                MoveElevatorUpwards(targetFloor);
-            }
+                CloseTheDoor();
 
-            if (CurrentFloor > targetFloor)
+                if (CurrentFloor < targetFloor)
+                {
+                    result = Direction.Up;
+                    States = ElevatorState.MovingWithDoorClosed;
+                    MoveElevatorUpwards(targetFloor);
+                }
+
+                if (CurrentFloor > targetFloor)
+                {
+                    result = Direction.Down;
+                    States = ElevatorState.MovingWithDoorClosed;
+                    MoveElevatorDownwards(targetFloor);
+                }
+            }
+            finally
             {
-                result = Direction.Down;
-                MoveElevatorDownwards(targetFloor);
+                States = ElevatorState.StoppedWithDoorClosed;
+                OpenTheDoor();
             }
-
+            
             return result;
+        }
+
+        protected virtual void OnFloorChanged(FloorChangedEventArgument currentFloorArgument)
+        {
+            clock.PauseFor(TimeSpan.FromSeconds(5));
+            var handler = FloorChanged;
+            handler?.Invoke(this, currentFloorArgument);
         }
 
         private void MoveElevatorDownwards(int targetFloor)
@@ -72,7 +92,7 @@ namespace ElevatorKata.Domain
         {
             for (var i = CurrentFloor + 1; i <= targetFloor; i++)
             {
-                if (!Floors.ContainsKey(i)) continue;                
+                if (!Floors.ContainsKey(i)) continue;
 
                 var previousFloor = CurrentFloor;
                 CurrentFloor = i;
@@ -80,11 +100,18 @@ namespace ElevatorKata.Domain
             }
         }
 
-        protected virtual void OnFloorChanged(FloorChangedEventArgument currentFloorArgument)
+        public bool OpenTheDoor()
         {
-            this.clock.PauseFor(TimeSpan.FromSeconds(5));
-            var handler = FloorChanged;
-            handler?.Invoke(this, currentFloorArgument);
+            if ((States & ElevatorState.Moving) == ElevatorState.Moving) return false;
+            clock.PauseFor(TimeSpan.FromSeconds(3));
+            States = ElevatorState.StoppedWithDoorOpened;
+            return true;
+
+        }
+
+        private void CloseTheDoor()
+        {
+            States = ElevatorState.StoppedWithDoorClosed;
         }
     }
 }
