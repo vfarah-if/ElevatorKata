@@ -7,8 +7,8 @@ For some Domain history look at https://en.wikipedia.org/wiki/Storey for a bette
 * (Done) Elevator delivers passengers to requested floors
 * (Done) Elevator should have an event that emits each floor as it passes the floor
 * (Done) Elevator doesn't respond immediately. consider options to simulate time
-* Elevator calls are queued not necessarily FIFO
-* Validate passenger floor requests
+* (Done) Elevator calls are queued not necessarily FIFO
+* (Done) Validate passenger floor requests
 * (Done as Observer or Event)Implement current floor monitor
 * (Done) Implement direction arrows
 * (Done) You may implement doors (opening and closing)

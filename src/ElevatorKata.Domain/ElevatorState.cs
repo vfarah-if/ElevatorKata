@@ -7,9 +7,9 @@ namespace ElevatorKata.Domain
     {
         Stopped = 0,
         Moving = 1,
-        DoorOpen = 2,
+        DoorOpened = 2,
         DoorClosed = 4,
-        StoppedWithDoorOpened = Stopped | DoorOpen,
+        StoppedWithDoorOpened = Stopped | DoorOpened,
         StoppedWithDoorClosed = Stopped | DoorClosed,
         MovingWithDoorClosed = Moving | DoorClosed,        
     }
