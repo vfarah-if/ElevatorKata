@@ -1,6 +1,8 @@
 # ElevatorKata
 These are some features. They can be implemented in any order you prefer.
 
+For some Domain history look at https://en.wikipedia.org/wiki/Storey for a better understanding
+
 * (Done) Elevator responds to calls containing a source floor and returns a direction
 * (Done) Elevator delivers passengers to requested floors
 * (Done) Elevator should have an event that emits each floor as it passes the floor

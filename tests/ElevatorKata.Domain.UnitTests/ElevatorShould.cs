@@ -22,17 +22,19 @@ namespace ElevatorKata.Domain.UnitTests
             mockClock = new Mock<IClock>();
             elevator = new Elevator(new Dictionary<int, string>
             {
-                { -1, "Basement" },
-                {  0, "Ground" },
-                {  1, "First" },
-                {  2, "Second" },
-                {  3, "Penthouse Suite" },
+                { -1, "1st Basement" },
+                {  0, "Ground floor" },
+                {  1, "1st floor" },
+                {  2, "2nd floor" },
+                {  3, "3rd floor" },
+                {  4, "4th floor" },
+                {  5, "5th floor" },
+                {  6, "Penthouse Suite" },
             }, mockClock.Object);
             elevator.StateChanged += (sender, args) =>
             {
-                Debug.WriteLine($"Elevator states are as following {elevator.States}");
+                Debug.WriteLine($"Elevator states are the following: '{elevator.States}'");
             };
-
         }
 
         [Fact]
@@ -46,11 +48,11 @@ namespace ElevatorKata.Domain.UnitTests
         public void ConfigureSupportedFloorsFromTheBasementToThePenthouseSuite()
         {
             elevator.Floors.Should().NotBeEmpty();
-            const string ExpectedBasementFloor = "Basement";
-            const string ExpectedPenthouseSuite = "Penthouse Suite";
+            const string expectedBasementFloor = "1st Basement";
+            const string expectedPenthouseSuite = "Penthouse Suite";
 
-            elevator.Floors.First().Value.Should().Be(ExpectedBasementFloor);
-            elevator.Floors.Last().Value.Should().Be(ExpectedPenthouseSuite);
+            elevator.Floors.First().Value.Should().Be(expectedBasementFloor);
+            elevator.Floors.Last().Value.Should().Be(expectedPenthouseSuite);
         }
 
         [Fact]
@@ -113,7 +115,7 @@ namespace ElevatorKata.Domain.UnitTests
             var expectedFloor = changedFloors.Single(x => x.CurrentFloor == -1);
             expectedFloor.Should().NotBeNull();
             expectedFloor.Direction.Should().Be(Direction.Down);
-            expectedFloor.Description.Should().Be("Basement");
+            expectedFloor.Description.Should().Be("1st Basement");
             mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Once);
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
         }
@@ -146,7 +148,7 @@ namespace ElevatorKata.Domain.UnitTests
 
         [Theory]
         [InlineData(-2)]
-        [InlineData(4)]
+        [InlineData(10)]
         public void ThrowAnOutOfRangeExceptionIfTheFloorDoesNotExist(int nonExistentFloor)
         {
             Action act = () => elevator.GoTo(nonExistentFloor);
