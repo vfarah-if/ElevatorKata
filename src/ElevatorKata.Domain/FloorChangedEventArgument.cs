@@ -3,20 +3,20 @@ namespace ElevatorKata.Domain
 {
     public class FloorChangedEventArgument
     {        
-        public FloorChangedEventArgument(int previousFloor, int currentFloor, string description)
+        public FloorChangedEventArgument(int currentFloor, string description, Direction direction)
         {
-            PreviousFloor = previousFloor;
             CurrentFloor = currentFloor;
             Description = description;
+            Direction = direction;
         }
 
-        public int PreviousFloor { get; }
         public int CurrentFloor { get; }
         public string Description { get; }
+        public Direction Direction { get; }
 
-        public static FloorChangedEventArgument Create(int previousFloor, int currentFloor, string description)
+        public static FloorChangedEventArgument Create(int currentFloor, string description, Direction direction)
         {
-            return new FloorChangedEventArgument(previousFloor, currentFloor, description);
+            return new FloorChangedEventArgument(currentFloor, description, direction);
         }
     }
 }

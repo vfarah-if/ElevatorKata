@@ -1,6 +1,7 @@
 using FluentAssertions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Moq;
 using Xunit;
@@ -27,6 +28,11 @@ namespace ElevatorKata.Domain.UnitTests
                 {  2, "Second" },
                 {  3, "Penthouse Suite" },
             }, mockClock.Object);
+            elevator.StateChanged += (sender, args) =>
+            {
+                Debug.WriteLine($"Elevator states are as following {elevator.States}");
+            };
+
         }
 
         [Fact]
@@ -106,7 +112,7 @@ namespace ElevatorKata.Domain.UnitTests
 
             var expectedFloor = changedFloors.Single(x => x.CurrentFloor == -1);
             expectedFloor.Should().NotBeNull();
-            expectedFloor.PreviousFloor.Should().Be(GroundFloor);
+            expectedFloor.Direction.Should().Be(Direction.Down);
             expectedFloor.Description.Should().Be("Basement");
             mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Once);
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
@@ -213,7 +219,6 @@ namespace ElevatorKata.Domain.UnitTests
                 elevator.States.Should().NotHaveFlag(ElevatorState.DoorOpen);
                 elevator.States.Should().HaveFlag(ElevatorState.DoorClosed);
                 elevator.States.Should().HaveFlag(ElevatorState.Moving);
-
             };
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
 

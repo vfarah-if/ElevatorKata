@@ -9,6 +9,6 @@ These are some features. They can be implemented in any order you prefer.
 * Validate passenger floor requests
 * (Done as Observer or Event)Implement current floor monitor
 * (Done) Implement direction arrows
-* You may implement doors (opening and closing)
+* (Done) You may implement doors (opening and closing)
 * You may implement DING!
 * There can be more than one elevator
