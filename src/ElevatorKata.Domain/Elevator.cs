@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace ElevatorKata.Domain
@@ -8,8 +9,9 @@ namespace ElevatorKata.Domain
     {
         private readonly IClock clock;
         private readonly List<Floor> floorRequests = new List<Floor>();
+        private readonly List<Floor> floors;
 
-        public Elevator(IList<Floor> supportedFloors, IClock clock, int currentFloorNo = 0)
+        public Elevator(IList<Floor> supportedFloors, IClock clock, int currentFloorNo = 0, string name = "Lift 1")
         {
             if (supportedFloors == null)
             {
@@ -22,24 +24,24 @@ namespace ElevatorKata.Domain
             }
 
             this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
-
-            Floors = supportedFloors.OrderBy(x => x.Number).ToList();
+            Name = name;
+            floors = supportedFloors.OrderBy(x => x.Number).ToList();
             CurrentFloor = Floors.SingleOrDefault(x => x.Number == currentFloorNo) ?? Floors.First();
             UpdateElevatorState(ElevatorState.StoppedWithDoorClosed);
         }
 
         public Floor CurrentFloor { get; private set; }
         public ElevatorState States { get; private set; }
-        // TODO: Internalize this in the end and externalize a readonly to the outside
-        public List<Floor> Floors { get; }
+        public IReadOnlyList<Floor> Floors => floors.AsReadOnly();
         public bool IsElevatorDoorOpened => (States & ElevatorState.DoorOpened) == ElevatorState.DoorOpened;
         public bool IsElevatorMoving => (States & ElevatorState.Moving) == ElevatorState.Moving;
         public bool IsElevatorDoorClosed => (States & ElevatorState.DoorClosed) == ElevatorState.DoorClosed;
         public bool IsElevatorStopped => (States & ElevatorState.Stopped) == ElevatorState.Stopped;
+        public string Name { get; }
 
         public EventHandler<FloorChangedEventArgument> FloorChanged;
         public EventHandler StateChanged;
-
+        
         public void GoTo(params int[] targetFloorNumbers)
         {
             ValidateFloorsExist(targetFloorNumbers);
@@ -55,7 +57,7 @@ namespace ElevatorKata.Domain
                     floorRequests.Remove(CurrentFloor);
                 }
 
-                if (floorRequests.Count > 0)
+                if (floorRequests.Any())
                 {
                     CloseTheDoor();
                     MoveElevatorToNextFloor();
@@ -69,6 +71,7 @@ namespace ElevatorKata.Domain
             if (IsElevatorMoving || IsElevatorDoorOpened) return false;
             clock.PauseFor(TimeSpan.FromSeconds(3));
             UpdateElevatorState(ElevatorState.StoppedWithDoorOpened);
+            Debug.WriteLine("Make DING SOUND");
             return true;
         }
 
@@ -91,6 +94,14 @@ namespace ElevatorKata.Domain
         {
             var handler = StateChanged;
             handler?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected bool StopTheElevator()
+        {
+            if (!IsElevatorMoving) return false;
+
+            UpdateElevatorState(ElevatorState.StoppedWithDoorClosed);
+            return true;
         }
 
         private void ValidateFloorsExist(int[] targetFloorNumbers)
@@ -123,29 +134,19 @@ namespace ElevatorKata.Domain
 
         private Floor GetPreviousFloor()
         {
-            var indexOfPreviousFloor = Floors.FindIndex(x => x.Equals(CurrentFloor)) - 1;
+            var indexOfPreviousFloor = floors.FindIndex(x => x.Equals(CurrentFloor)) - 1;
             return indexOfPreviousFloor >= 0 ? Floors.ElementAt(indexOfPreviousFloor) : null;
         }
 
         private Floor GetNextFloor()
         {
-            var indexOfNextFloor = Floors.FindIndex(x => x.Equals(CurrentFloor)) + 1;
+            var indexOfNextFloor = floors.FindIndex(x => x.Equals(CurrentFloor)) + 1;
             return indexOfNextFloor <= Floors.Count ? Floors.ElementAt(indexOfNextFloor) : null;
         }
-
 
         private bool CanMoveUp(int targetFloorNo)
         {
             return CurrentFloor.Number < targetFloorNo;
-        }
-
-
-        private bool StopTheElevator()
-        {
-            if (!IsElevatorMoving) return false;
-
-            UpdateElevatorState(ElevatorState.StoppedWithDoorClosed);
-            return true;
         }
 
         private void UpdateElevatorState(ElevatorState elevatorState)

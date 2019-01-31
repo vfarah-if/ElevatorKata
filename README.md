@@ -12,5 +12,7 @@ For some Domain history look at https://en.wikipedia.org/wiki/Storey for a bette
 * (Done as Observer or Event)Implement current floor monitor
 * (Done) Implement direction arrows
 * (Done) You may implement doors (opening and closing)
-* You may implement DING!
-* There can be more than one elevator
+* (Done) You may implement DING!
+* The can be an elevator display panel that can command the elevator
+* There can be an outside elevator that can be responsible for calling an elevator and displaying which floor its on and which direction the lift is going in
+* There can be more than one elevator inside a building

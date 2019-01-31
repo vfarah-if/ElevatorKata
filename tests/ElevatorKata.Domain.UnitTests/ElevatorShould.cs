@@ -17,7 +17,7 @@ namespace ElevatorKata.Domain.UnitTests
         private const int Basement = -1;
         private const int UnluckyThirteenthFloor = 13;
 
-        private Elevator elevator;
+        private readonly Elevator elevator;
         private readonly Mock<IClock> mockClock;
 
         public ElevatorShould()
@@ -215,7 +215,20 @@ namespace ElevatorKata.Domain.UnitTests
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
             mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(3)), Times.Once);
         }
-        
+
+        [Fact]
+        public void OpenAndCloseTheDoor()
+        {
+            elevator.States.Should().Be(ElevatorState.StoppedWithDoorClosed);
+            elevator.OpenTheDoor();
+            elevator.IsElevatorDoorOpened.Should().BeTrue();
+
+            var actual = elevator.CloseTheDoor();
+
+            elevator.IsElevatorDoorClosed.Should().BeTrue();
+            actual.Should().BeTrue();
+        }
+
         [Fact]
         public void NotBeAbleToOpenTheDoorWhenTheLiftIsMoving()
         {
