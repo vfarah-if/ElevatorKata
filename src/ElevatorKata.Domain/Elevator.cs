@@ -28,10 +28,12 @@ namespace ElevatorKata.Domain
             floors = supportedFloors.OrderBy(x => x.Number).ToList();
             CurrentFloor = Floors.SingleOrDefault(x => x.Number == currentFloorNo) ?? Floors.First();
             UpdateElevatorState(ElevatorState.StoppedWithDoorClosed);
+            Direction = ElevatorDirection.None;
         }
 
         public Floor CurrentFloor { get; private set; }
         public ElevatorState States { get; private set; }
+        public ElevatorDirection Direction { get; private set; }
         public IReadOnlyList<Floor> Floors => floors.AsReadOnly();
         public bool IsElevatorDoorOpened => (States & ElevatorState.DoorOpened) == ElevatorState.DoorOpened;
         public bool IsElevatorMoving => (States & ElevatorState.Moving) == ElevatorState.Moving;
@@ -41,29 +43,37 @@ namespace ElevatorKata.Domain
 
         public EventHandler<FloorChangedEventArgument> FloorChanged;
         public EventHandler StateChanged;
-        
+        public EventHandler Finished;
+
         public void GoTo(params int[] targetFloorNumbers)
         {
             ValidateFloorsExist(targetFloorNumbers);
            
             if (IsElevatorMoving) return;
 
-            do
+            try
             {
-                if (floorRequests.Contains(CurrentFloor))
+                do
                 {
-                    StopTheElevator();
-                    OpenTheDoor();
-                    floorRequests.Remove(CurrentFloor);
-                }
+                    if (floorRequests.Contains(CurrentFloor))
+                    {
+                        floorRequests.Remove(CurrentFloor);
+                        StopTheElevator();                    
+                        OpenTheDoor();                    
+                    }
 
-                if (floorRequests.Any())
-                {
-                    CloseTheDoor();
-                    MoveElevatorToNextFloor();
-                }
+                    if (floorRequests.Any())
+                    {
+                        CloseTheDoor();
+                        MoveElevatorToNextFloor();
+                    }
 
-            } while (floorRequests.Any());
+                } while (floorRequests.Any());
+            }
+            finally
+            {                
+                OnFinished();
+            }            
         }
 
         public bool OpenTheDoor()
@@ -96,6 +106,12 @@ namespace ElevatorKata.Domain
             handler?.Invoke(this, EventArgs.Empty);
         }
 
+        protected virtual void OnFinished()
+        {
+            var handler = Finished;
+            handler?.Invoke(this, EventArgs.Empty);
+        }
+
         protected bool StopTheElevator()
         {
             if (!IsElevatorMoving) return false;
@@ -104,7 +120,7 @@ namespace ElevatorKata.Domain
             return true;
         }
 
-        private void ValidateFloorsExist(int[] targetFloorNumbers)
+        private void ValidateFloorsExist(IEnumerable<int> targetFloorNumbers)
         {
             foreach (var targetFloor in targetFloorNumbers)
             {
@@ -119,16 +135,15 @@ namespace ElevatorKata.Domain
         }
 
         private void MoveElevatorToNextFloor()
-        {
-            UpdateElevatorState(ElevatorState.MovingWithDoorClosed);
+        {            
             var targetFloor = floorRequests.First();
+            Direction = CanMoveUp(targetFloor.Number) ? ElevatorDirection.Up : ElevatorDirection.Down;
             UpdateElevatorState(ElevatorState.MovingWithDoorClosed);
-            Direction targetFloorDirection = CanMoveUp(targetFloor.Number) ? Direction.Up : Direction.Down;
-            var nextFloor = targetFloorDirection == Direction.Up ? GetNextFloor() : GetPreviousFloor();
+            var nextFloor = Direction == ElevatorDirection.Up ? GetNextFloor() : GetPreviousFloor();
             if (nextFloor != null)
             {
                 CurrentFloor = nextFloor;
-                OnFloorChanged(FloorChangedEventArgument.Create(CurrentFloor, targetFloorDirection));
+                OnFloorChanged(FloorChangedEventArgument.Create(CurrentFloor, this.Direction));
             }
         }
 

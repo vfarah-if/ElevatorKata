@@ -1,6 +1,6 @@
 ﻿namespace ElevatorKata.Domain
 {
-    public enum Direction
+    public enum ElevatorDirection
     {
         None = 0,
         Up = 1,

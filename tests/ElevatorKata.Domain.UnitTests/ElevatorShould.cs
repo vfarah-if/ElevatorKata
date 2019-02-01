@@ -96,7 +96,6 @@ namespace ElevatorKata.Domain.UnitTests
             act.Should().Throw<ArgumentNullException>().WithMessage(expectedMessage);
         }
 
-        
         [Fact]
         public void ThrowArgumentExceptionWhenEmptyFloorsAssigned()
         {
@@ -123,7 +122,7 @@ namespace ElevatorKata.Domain.UnitTests
             var expectTheFloorChangedEventToHaveBeenCalled = false;
             elevator.FloorChanged += (sender, argument) =>
             {
-                argument.Direction.Should().HaveFlag(Direction.Up);
+                argument.Direction.Should().HaveFlag(ElevatorDirection.Up);
                 expectTheFloorChangedEventToHaveBeenCalled = true;
             }; 
             
@@ -161,7 +160,8 @@ namespace ElevatorKata.Domain.UnitTests
             var expectTheFloorChangedEventToHaveBeenCalled = false;
             elevator.FloorChanged += (sender, argument) =>
             {
-                argument.Direction.Should().HaveFlag(Direction.Down);
+                argument.Direction.Should().HaveFlag(ElevatorDirection.Down);
+                elevator.Direction.Should().HaveFlag(ElevatorDirection.Down);
                 expectTheFloorChangedEventToHaveBeenCalled = true;
             };
 
@@ -185,7 +185,7 @@ namespace ElevatorKata.Domain.UnitTests
         
             var expectedFloor = changedFloors.Single(x => x.Floor.Number == Basement);
             expectedFloor.Should().NotBeNull();
-            expectedFloor.Direction.Should().Be(Direction.Down);
+            expectedFloor.Direction.Should().Be(ElevatorDirection.Down);
             expectedFloor.Floor.Description.Should().Be("1st Basement");
             mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Once);
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
