@@ -35,6 +35,16 @@ namespace ElevatorKata.Domain.UnitTests
         }
 
         [Fact]
+        public void ThrowArgumentNullExceptionWhenNullElevatorAssigned()
+        {
+            var expectedMessage = $"Value cannot be null.{Environment.NewLine}Parameter name: elevator";
+
+            Action act = () => new ElevatorDirectionPanel(null);
+
+            act.Should().Throw<ArgumentNullException>().WithMessage(expectedMessage);
+        }
+
+        [Fact]
         public void CreateAPanelWithDefaultSettings()
         {
             elevatorDirectionPanel.Should().NotBeNull();
