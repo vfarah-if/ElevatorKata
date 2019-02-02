@@ -23,7 +23,7 @@ namespace ElevatorKata.Domain
         public IActivityState DownArrowButton => downArrowButton;
         public IActivityState UpArrowButton => upArrowButton;
 
-        public EventHandler Changed;
+        public event EventHandler Changed;
 
         public override string ToString()
         {

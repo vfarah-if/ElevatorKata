@@ -61,6 +61,15 @@ namespace ElevatorKata.Domain {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least one elevator should be associated with the elevator request panel.
+        /// </summary>
+        public static string ElevatorsEmpty {
+            get {
+                return ResourceManager.GetString("ElevatorsEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Floors cannot be an empty..
         /// </summary>
         public static string FloorsEmpty {

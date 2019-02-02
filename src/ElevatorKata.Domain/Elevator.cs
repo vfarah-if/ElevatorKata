@@ -41,9 +41,9 @@ namespace ElevatorKata.Domain
         public bool IsElevatorStopped => (States & ElevatorState.Stopped) == ElevatorState.Stopped;
         public string Name { get; }
 
-        public EventHandler<FloorChangedEventArgument> FloorChanged;
-        public EventHandler StateChanged;
-        public EventHandler Finished;
+        public event EventHandler<FloorChangedEventArgument> FloorChanged;
+        public event EventHandler StateChanged;
+        public event EventHandler Finished;
 
         public void GoTo(params int[] targetFloorNumbers)
         {

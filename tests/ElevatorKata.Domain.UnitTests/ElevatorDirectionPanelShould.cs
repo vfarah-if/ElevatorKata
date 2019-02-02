@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -83,15 +81,14 @@ namespace ElevatorKata.Domain.UnitTests
         [Fact]
         public void ShowDownArrowButtonActiveWhileElevatorMovesDownAndDeactivateWhenFinished()
         {
-            var elevatorFloorChangedCalled = false;
-            var elevatorFinishedCalled = false;
-
+            var elevatorFloorChangedCalled = false;            
             elevator.FloorChanged += (sender, argument) =>
             {
                 elevatorDirectionPanel.UpArrowButton.IsActive.Should().BeFalse();
                 elevatorDirectionPanel.DownArrowButton.IsActive.Should().BeTrue();
                 elevatorFloorChangedCalled = true;
             };
+            var elevatorFinishedCalled = false;
             elevator.Finished += (sender, args) =>
             {
                 elevatorDirectionPanel.UpArrowButton.IsActive.Should().BeFalse();

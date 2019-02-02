@@ -4,15 +4,20 @@ namespace ElevatorKata.Domain
 {
     public class ActivityButton : IActivityState
     {
+        private readonly Action action;
         public EventHandler Changed;
-        public ActivityButton(string description, bool isActive = false)
+        public ActivityButton(string description, bool isActive = false, bool isEnabled = true, Action action = null)
         {
+            this.action = action;
             Description = description;
             IsActive = isActive;
+            IsEnabled = isEnabled;
         }
 
         public string Description { get; }
         public bool IsActive { get; private set; }
+        public bool IsEnabled { get; }
+        public bool CanExecute => !IsActive && IsEnabled && action != null;
 
         public void Activate()
         {
@@ -32,14 +37,22 @@ namespace ElevatorKata.Domain
             }
         }
 
+        public bool Execute()
+        {
+            if (!CanExecute) return false;
+            Activate();
+            action?.Invoke();
+            return true;
+        }
+
         public override string ToString()
         {
             return $"'{Description ?? "Unknown"}' activity set to {IsActive}";
         }
 
-        public static ActivityButton Create(string description, bool isActive = false)
+        public static ActivityButton Create(string description, bool isActive = false, bool isEnabled = true, Action action = null)
         {
-            return new ActivityButton(description, isActive);
+            return new ActivityButton(description, isActive, isEnabled, action);
         }
 
         private void OnChanged()
