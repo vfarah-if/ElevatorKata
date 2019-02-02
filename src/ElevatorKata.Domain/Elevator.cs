@@ -108,6 +108,7 @@ namespace ElevatorKata.Domain
 
         protected virtual void OnFinished()
         {
+            this.Direction = ElevatorDirection.None;
             var handler = Finished;
             handler?.Invoke(this, EventArgs.Empty);
         }
