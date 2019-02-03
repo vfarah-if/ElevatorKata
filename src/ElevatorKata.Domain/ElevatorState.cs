@@ -5,10 +5,10 @@ namespace ElevatorKata.Domain
     [Flags]
     public enum ElevatorState
     {
-        Stopped = 0,
-        Moving = 1,
-        DoorOpened = 2,
-        DoorClosed = 4,
+        Stopped = 1,
+        Moving = 2,
+        DoorOpened = 4,
+        DoorClosed = 8,
         StoppedWithDoorOpened = Stopped | DoorOpened,
         StoppedWithDoorClosed = Stopped | DoorClosed,
         MovingWithDoorClosed = Moving | DoorClosed,        

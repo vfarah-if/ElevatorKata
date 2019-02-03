@@ -60,7 +60,7 @@ namespace ElevatorKata.Domain
             var closestStoppedElevator =
                 (from elevator in elevators
                 let floorDistanceAway = Math.Abs(this.CallingFloor.Number - elevator.CurrentFloor.Number)
-                where !elevator.IsElevatorMoving
+                where elevator.IsElevatorStopped
                 orderby floorDistanceAway
                 select elevator).FirstOrDefault();
 

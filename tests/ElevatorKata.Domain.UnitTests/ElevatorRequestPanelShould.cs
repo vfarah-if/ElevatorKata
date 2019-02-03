@@ -135,6 +135,7 @@ namespace ElevatorKata.Domain.UnitTests
             {
                 if (!elevator1FloorChanged)
                 {
+                    // Call Elevator 2 while Elevator 1 is busy
                     elevator2.GoTo(3);
                     elevator1FloorChanged = true;
                 }                
@@ -144,22 +145,29 @@ namespace ElevatorKata.Domain.UnitTests
             {
                 if (!elevator2FloorChanged)
                 {
+                    // Request a lift on the ground floor while both lifts are busy
                     elevatorRequestPanel.UpButton.Execute();
                     elevator2FloorChanged = true;
                 }
             };
 
+            var finishedOrder = new List<Elevator>();
             elevator2.Finished += (sender, args) =>
             {
                 elevator2.CurrentFloor.Number.Should().Be(elevatorRequestPanel.CallingFloor.Number);
+                finishedOrder.Add(elevator2);
             };
             elevator1.Finished += (sender, args) =>
             {
                 elevator1.CurrentFloor.Number.Should().Be(elevatorRequestPanel.CallingFloor.Number);
+                finishedOrder.Add(elevator1);
             };
 
             elevator1.GoTo(3);
-            
+
+            elevator1FloorChanged.Should().BeTrue();
+            elevator2FloorChanged.Should().BeTrue();
+            finishedOrder.Count.Should().Be(2);
         }
     }
 }
