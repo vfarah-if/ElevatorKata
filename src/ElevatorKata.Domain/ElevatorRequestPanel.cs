@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace ElevatorKata.Domain
@@ -27,6 +28,8 @@ namespace ElevatorKata.Domain
                 throw new ArgumentException(Errors.ElevatorsEmpty, nameof(elevatorItems));
             }                            
             elevators.AddRange(elevatorItems);
+            elevators.ForEach(elevator => elevator.StateChanged += CheckStateChangesForElevatorOnTheSameFloorWithDoorOpened);
+            
             switch (elevatorRequestPanelOption)
             {
                 case ElevatorRequestPanelOption.DownOnly:
@@ -52,15 +55,28 @@ namespace ElevatorKata.Domain
 
         public event EventHandler Changed;
 
-        private void RequestElevatorToTheCurrentFloor()
-        {
-            var nearestStoppedElevatorOnTheSameFloor = elevators.SingleOrDefault(x =>
-                x.IsElevatorStopped && x.CurrentFloor.Number == this.CallingFloor.Number);
-            if (nearestStoppedElevatorOnTheSameFloor != null)
+        private void RequestElevatorsToTheCurrentFloor()
+        {            
+            var closestStoppedElevator =
+                (from elevator in elevators
+                let floorDistanceAway = Math.Abs(this.CallingFloor.Number - elevator.CurrentFloor.Number)
+                where !elevator.IsElevatorMoving
+                orderby floorDistanceAway
+                select elevator).FirstOrDefault();
+
+            if (closestStoppedElevator != null)
             {
-                nearestStoppedElevatorOnTheSameFloor.StateChanged += CheckStateChangesForElevatorOnTheSameFloorWithDoorOpened;
-                nearestStoppedElevatorOnTheSameFloor.GoTo(this.CallingFloor.Number);                
+                Debug.WriteLine($"{closestStoppedElevator.Name} requested.");
+                closestStoppedElevator.GoTo(CallingFloor.Number);
+                return;
             }
+            CallAllLifts();
+        }
+
+        private void CallAllLifts()
+        {
+            Debug.WriteLine($"All lifts requested as they are busy with which ever stopping on this floor.");
+            elevators.ForEach(elevator => elevator.GoTo(CallingFloor.Number));
         }
 
         private void CheckStateChangesForElevatorOnTheSameFloorWithDoorOpened(object sender, EventArgs e)
@@ -69,7 +85,6 @@ namespace ElevatorKata.Domain
                 callingElevator.IsElevatorDoorOpened && 
                 callingElevator.CurrentFloor.Number == CallingFloor.Number)
             {
-                //TODO: Calculate which button was called first instead of deactivating both
                 upButton.Deactivate();
                 downButton.Deactivate();                        
             }
@@ -77,13 +92,13 @@ namespace ElevatorKata.Domain
 
         private void CreateDownButton(bool isEnabled)
         {
-            downButton = ActivityButton.Create("Request lift to go down", false, isEnabled, RequestElevatorToTheCurrentFloor);
+            downButton = ActivityButton.Create("Request lift to go down", false, isEnabled, RequestElevatorsToTheCurrentFloor);
             downButton.Changed += OnChanged;
         }
 
         private void CreateUpButton(bool isEnabled)
         {
-            upButton = ActivityButton.Create("Request lift to go up", false, isEnabled, RequestElevatorToTheCurrentFloor);
+            upButton = ActivityButton.Create("Request lift to go up", false, isEnabled, RequestElevatorsToTheCurrentFloor);
             upButton.Changed += OnChanged;
         }
 

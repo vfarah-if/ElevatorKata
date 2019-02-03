@@ -48,7 +48,7 @@ namespace ElevatorKata.Domain.UnitTests
         [Fact]
         public void ThrowArgumentExceptionWhenWhenEmptyElevatorListAssigned()
         {
-            var expectedMessage = $"{Errors.ElevatorsEmpty}{Environment.NewLine}Parameter name: elevatorItems"; 
+            var expectedMessage = $"{Errors.ElevatorsEmpty}{Environment.NewLine}Parameter name: elevatorItems";
 
             Action act = () => new ElevatorRequestPanel(callingFloor, ElevatorRequestPanelOption.UpAndDown, Enumerable.Empty<Elevator>().ToArray());
 
@@ -69,7 +69,7 @@ namespace ElevatorKata.Domain.UnitTests
             elevatorRequestPanel.UpButton.CanExecute.Should().BeTrue();
 
             elevatorRequestPanel.DownButton.Should().NotBeNull();
-            elevatorRequestPanel.DownButton.IsActive.Should().BeFalse();            
+            elevatorRequestPanel.DownButton.IsActive.Should().BeFalse();
             elevatorRequestPanel.DownButton.IsEnabled.Should().BeTrue();
             elevatorRequestPanel.DownButton.CanExecute.Should().BeTrue();
         }
@@ -100,6 +100,66 @@ namespace ElevatorKata.Domain.UnitTests
             upButtonIsActiveStates.Count.Should().Be(2);
             upButtonIsActiveStates.First().Should().BeTrue();
             upButtonIsActiveStates.Last().Should().BeFalse();
+        }
+
+        [Fact]
+        public void RequestElevator2WhenElevator1IsAtTheTopFloorOrFurtherAway()
+        {
+            var elevator1FinishedCalled = false;
+            elevator1.Finished += (sender, args) =>
+            {
+                // Elevator request when Lift 2 is on the third floor
+                elevator1.CurrentFloor.Number.Should().Be(3);
+                elevatorRequestPanel.UpButton.Execute();
+                elevator1FinishedCalled = true;
+            };
+
+            var elevator2FinishedCalled = false;
+            elevator2.Finished += (sender, args) =>
+            {
+                elevator2.CurrentFloor.Number.Should().Be(elevatorRequestPanel.CallingFloor.Number);
+                elevator2FinishedCalled = true;
+            };
+
+            elevator1.GoTo(3);
+
+            elevator1FinishedCalled.Should().BeTrue();
+            elevator2FinishedCalled.Should().BeTrue();
+        }
+
+        [Fact]
+        public void RequestBothLiftsWhenAllLiftsAreBusy()
+        {
+            var elevator1FloorChanged = false;
+            elevator1.FloorChanged += (sender, argument) =>
+            {
+                if (!elevator1FloorChanged)
+                {
+                    elevator2.GoTo(3);
+                    elevator1FloorChanged = true;
+                }                
+            };
+            var elevator2FloorChanged = false;
+            elevator2.FloorChanged += (sender, argument) =>
+            {
+                if (!elevator2FloorChanged)
+                {
+                    elevatorRequestPanel.UpButton.Execute();
+                    elevator2FloorChanged = true;
+                }
+            };
+
+            elevator2.Finished += (sender, args) =>
+            {
+                elevator2.CurrentFloor.Number.Should().Be(elevatorRequestPanel.CallingFloor.Number);
+            };
+            elevator1.Finished += (sender, args) =>
+            {
+                elevator1.CurrentFloor.Number.Should().Be(elevatorRequestPanel.CallingFloor.Number);
+            };
+
+            elevator1.GoTo(3);
+            
         }
     }
 }
