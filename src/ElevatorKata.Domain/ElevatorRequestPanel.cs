@@ -48,8 +48,7 @@ namespace ElevatorKata.Domain
         }
 
         public IReadOnlyList<Elevator> Elevators => elevators.AsReadOnly();
-        public Floor CallingFloor { get; private set; }
-
+        public Floor CallingFloor { get; }
         public IActivityState UpButton => upButton;
         public IActivityState DownButton => downButton;
 
@@ -83,7 +82,7 @@ namespace ElevatorKata.Domain
         {
             if (sender is Elevator callingElevator && 
                 callingElevator.IsElevatorDoorOpened && 
-                callingElevator.CurrentFloor.Number == CallingFloor.Number)
+                callingElevator.CurrentFloor.Equals(CallingFloor))
             {
                 upButton.Deactivate();
                 downButton.Deactivate();                        
