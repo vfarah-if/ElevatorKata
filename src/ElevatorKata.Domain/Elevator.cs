@@ -79,7 +79,7 @@ namespace ElevatorKata.Domain
         public bool OpenTheDoor()
         {
             if (IsElevatorMoving || IsElevatorDoorOpened) return false;
-            clock.PauseFor(TimeSpan.FromSeconds(3));
+            clock.RunFor(TimeSpan.FromSeconds(3));
             UpdateElevatorState(ElevatorState.StoppedWithDoorOpened);
             Debug.WriteLine("Make DING SOUND");
             return true;
@@ -95,7 +95,7 @@ namespace ElevatorKata.Domain
 
         protected virtual void OnFloorChanged(FloorChangedEventArgument currentFloorArgument)
         {
-            clock.PauseFor(TimeSpan.FromSeconds(5));
+            clock.RunFor(TimeSpan.FromSeconds(5));
             var handler = FloorChanged;
             handler?.Invoke(this, currentFloorArgument);
         }

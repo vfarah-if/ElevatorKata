@@ -149,7 +149,7 @@ namespace ElevatorKata.Domain.UnitTests
             changedFloors.Exists(x => x.Number == FirstFloor).Should().BeTrue();
             changedFloors.Exists(x => x.Number == UnluckyThirteenthFloor).Should().BeFalse();
             changedFloors.Exists(x => x.Number == SeventhFloor).Should().BeTrue();
-            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Exactly(callCountForTransitionTimeBetweenFloors));
+            mockClock.Verify(x => x.RunFor(TimeSpan.FromSeconds(5)), Times.Exactly(callCountForTransitionTimeBetweenFloors));
             elevator.IsElevatorStopped.Should().BeTrue();
             elevator.IsElevatorDoorOpened.Should().BeTrue();
         }
@@ -187,7 +187,7 @@ namespace ElevatorKata.Domain.UnitTests
             expectedFloor.Should().NotBeNull();
             expectedFloor.Direction.Should().Be(ElevatorDirection.Down);
             expectedFloor.Floor.Description.Should().Be("1st Basement");
-            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Once);
+            mockClock.Verify(x => x.RunFor(TimeSpan.FromSeconds(5)), Times.Once);
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
         }
 
@@ -202,7 +202,7 @@ namespace ElevatorKata.Domain.UnitTests
 
             expectTheFloorChangedEventNotToHaveBeenCalled.Should().BeTrue();
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
-            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(5)), Times.Never);
+            mockClock.Verify(x => x.RunFor(TimeSpan.FromSeconds(5)), Times.Never);
         }       
         
         [Fact]
@@ -213,7 +213,7 @@ namespace ElevatorKata.Domain.UnitTests
             elevator.OpenTheDoor();
         
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
-            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(3)), Times.Once);
+            mockClock.Verify(x => x.RunFor(TimeSpan.FromSeconds(3)), Times.Once);
         }
 
         [Fact]
@@ -245,7 +245,7 @@ namespace ElevatorKata.Domain.UnitTests
             elevator.GoTo(PenthouseSuite);
             
             elevator.States.Should().Be(ElevatorState.StoppedWithDoorOpened);
-            mockClock.Verify(x => x.PauseFor(TimeSpan.FromSeconds(3)), Times.Once);
+            mockClock.Verify(x => x.RunFor(TimeSpan.FromSeconds(3)), Times.Once);
         }
 
         [Fact]
