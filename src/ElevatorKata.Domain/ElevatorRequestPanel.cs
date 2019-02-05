@@ -17,8 +17,8 @@ namespace ElevatorKata.Domain
     public class ElevatorRequestPanel
     {
         private readonly List<Elevator> elevators = new List<Elevator>();
-        private ActivityButton upButton;
-        private ActivityButton downButton;
+        private ActivityCommandButton upButton;
+        private ActivityCommandButton downButton;
 
         public ElevatorRequestPanel(Floor callingFloor, ElevatorRequestPanelOption elevatorRequestPanelOption, params Elevator[] elevatorItems)
         {
@@ -91,13 +91,13 @@ namespace ElevatorKata.Domain
 
         private void CreateDownButton(bool isEnabled)
         {
-            downButton = ActivityButton.Create("Request lift to go down", false, isEnabled, RequestElevatorsToTheCurrentFloor);
+            downButton = ActivityCommandButton.Create("Request lift to go down", false, isEnabled, RequestElevatorsToTheCurrentFloor);
             downButton.Changed += OnChanged;
         }
 
         private void CreateUpButton(bool isEnabled)
         {
-            upButton = ActivityButton.Create("Request lift to go up", false, isEnabled, RequestElevatorsToTheCurrentFloor);
+            upButton = ActivityCommandButton.Create("Request lift to go up", false, isEnabled, RequestElevatorsToTheCurrentFloor);
             upButton.Changed += OnChanged;
         }
 

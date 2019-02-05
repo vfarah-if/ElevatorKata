@@ -2,11 +2,11 @@
 
 namespace ElevatorKata.Domain
 {
-    public class ActivityButton : IActivityState
+    public class ActivityCommandButton : IActivityState
     {
         private readonly Action action;
         public EventHandler Changed;
-        public ActivityButton(string description, bool isActive = false, bool isEnabled = true, Action action = null)
+        public ActivityCommandButton(string description, bool isActive = false, bool isEnabled = true, Action action = null)
         {
             this.action = action;
             Description = description;
@@ -50,9 +50,9 @@ namespace ElevatorKata.Domain
             return $"'{Description ?? "Unknown"}' activity set to {IsActive}";
         }
 
-        public static ActivityButton Create(string description, bool isActive = false, bool isEnabled = true, Action action = null)
+        public static ActivityCommandButton Create(string description, bool isActive = false, bool isEnabled = true, Action action = null)
         {
-            return new ActivityButton(description, isActive, isEnabled, action);
+            return new ActivityCommandButton(description, isActive, isEnabled, action);
         }
 
         private void OnChanged()
