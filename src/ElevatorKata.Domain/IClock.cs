@@ -4,6 +4,6 @@ namespace ElevatorKata.Domain
 {
     public interface IClock
     {
-        void PauseFor(TimeSpan timeSpan);
+        void RunFor(TimeSpan timeSpan);
     }
 }

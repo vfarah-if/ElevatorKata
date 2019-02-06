@@ -5,14 +5,14 @@ namespace ElevatorKata.Domain
 {
     public class ElevatorDirectionPanel
     {
-        private readonly ActivityButton downArrowButton;
-        private readonly ActivityButton upArrowButton;
+        private readonly ActivityCommandButton downArrowButton;
+        private readonly ActivityCommandButton upArrowButton;
 
         public ElevatorDirectionPanel(Elevator elevator)
         {
             Elevator = elevator ?? throw new ArgumentNullException(nameof(elevator));
-            downArrowButton = ActivityButton.Create("Down Arrow");
-            upArrowButton = ActivityButton.Create("Up Arrow");
+            downArrowButton = ActivityCommandButton.Create("Down Arrow");
+            upArrowButton = ActivityCommandButton.Create("Up Arrow");
             downArrowButton.Changed += OnButtonStateChanged;
             upArrowButton.Changed += OnButtonStateChanged;
             Elevator.StateChanged += ElevatorStateChanged;

@@ -17,8 +17,8 @@ namespace ElevatorKata.Domain
     public class ElevatorRequestPanel
     {
         private readonly List<Elevator> elevators = new List<Elevator>();
-        private ActivityButton upButton;
-        private ActivityButton downButton;
+        private ActivityCommandButton upButton;
+        private ActivityCommandButton downButton;
 
         public ElevatorRequestPanel(Floor callingFloor, ElevatorRequestPanelOption elevatorRequestPanelOption, params Elevator[] elevatorItems)
         {
@@ -48,8 +48,7 @@ namespace ElevatorKata.Domain
         }
 
         public IReadOnlyList<Elevator> Elevators => elevators.AsReadOnly();
-        public Floor CallingFloor { get; private set; }
-
+        public Floor CallingFloor { get; }
         public IActivityState UpButton => upButton;
         public IActivityState DownButton => downButton;
 
@@ -83,7 +82,7 @@ namespace ElevatorKata.Domain
         {
             if (sender is Elevator callingElevator && 
                 callingElevator.IsElevatorDoorOpened && 
-                callingElevator.CurrentFloor.Number == CallingFloor.Number)
+                callingElevator.CurrentFloor.Equals(CallingFloor))
             {
                 upButton.Deactivate();
                 downButton.Deactivate();                        
@@ -92,13 +91,13 @@ namespace ElevatorKata.Domain
 
         private void CreateDownButton(bool isEnabled)
         {
-            downButton = ActivityButton.Create("Request lift to go down", false, isEnabled, RequestElevatorsToTheCurrentFloor);
+            downButton = ActivityCommandButton.Create("Request lift to go down", false, isEnabled, RequestElevatorsToTheCurrentFloor);
             downButton.Changed += OnChanged;
         }
 
         private void CreateUpButton(bool isEnabled)
         {
-            upButton = ActivityButton.Create("Request lift to go up", false, isEnabled, RequestElevatorsToTheCurrentFloor);
+            upButton = ActivityCommandButton.Create("Request lift to go up", false, isEnabled, RequestElevatorsToTheCurrentFloor);
             upButton.Changed += OnChanged;
         }
 
