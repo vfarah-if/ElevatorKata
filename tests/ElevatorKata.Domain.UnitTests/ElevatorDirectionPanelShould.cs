@@ -14,7 +14,7 @@ namespace ElevatorKata.Domain.UnitTests
 
         private readonly Mock<IClock> clockMock;
         private readonly ElevatorDirectionPanel elevatorDirectionPanel;
-        private Elevator elevator;
+        private readonly Elevator elevator;
 
         public ElevatorDirectionPanelShould()
         {

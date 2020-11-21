@@ -11,11 +11,11 @@ namespace ElevatorKata.Domain.UnitTests
     {
         private const int GroundFloor = 0;
 
-        private ElevatorRequestPanel elevatorRequestPanel;
+        private readonly ElevatorRequestPanel elevatorRequestPanel;
         private readonly Mock<IClock> clockMock;
-        private Elevator elevator1;
-        private Elevator elevator2;
-        private Floor callingFloor;
+        private readonly Elevator elevator1;
+        private readonly Elevator elevator2;
+        private readonly Floor callingFloor;
 
         public ElevatorRequestPanelShould()
         {
